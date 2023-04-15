@@ -8,12 +8,11 @@ services:
     command: ./auth-app
     restart: always
     networks:
-      - migration
-      - nginx_to_services
+      - new
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5436/postgres
       - DB_PASSWORD=${DB_PASSWORD}
     ports:
       - "8008:8008"
@@ -21,8 +20,6 @@ services:
       - auth-db
     volumes:
       - .:/app
-    expose:
-      - "80"
   auth-db:
     image: postgres:15-alpine
     container_name: "auth-db"
@@ -33,14 +30,14 @@ services:
     env_file:
       - .env
     volumes:
-      - postgres_auth_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    expose:
-      - "5432:5432"
+    ports:
+      - "5436:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d qtr_portal -U qtr_portal" ]
       interval: 5s
@@ -52,7 +49,7 @@ services:
       - migration
     volumes:
       - .:/migrations
-    command: [ "-path", "/migrations", "-database",  "postgres://postgres:postgres@auth_db:5432/postgres?sslmode=disable", "up" ]
+    command: [ "-path", "/migrations", "-database",  "postgres://postgres:postgres@auth_db:5436/postgres?sslmode=disable", "up" ]
     links:
       - auth_db
     depends_on:
@@ -60,43 +57,21 @@ services:
   deployment-app:
     container_name: "deployment-service"
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0
     working_dir: /app
+    command: uvicorn app.__main__:app --host 0.0.0.0 --port 8088 --reload
     ports:
       - "8088:8088"
+    environment:
+      - DOCKER_CLIENT_URL=unix://var/run/docker.sock
     volumes:
       - .:/app
-    depends_on:
-      - deployment_db
-    restart: always
-    networks:
-      - nginx_to_services
-    expose:
-      - "80"
-  deployment-db:
-    image: postgres:15-alpine
-    container_name: "deployment_db"
-    env_file:
-      - .env
-    volumes:
-      - postgres_deployment_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    expose:
-      - "5432:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d qtr_portal -U qtr_portal" ]
-      interval: 5s
-      retries: 5
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: always
   main-app:
     container_name: "main-api"
     build: .
     working_dir: /app
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.__main__:app --host 0.0.0.0 --reload'
+    command: bash -c 'alembic upgrade head && while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.__main__:app --host 0.0.0.0 --reload'
     ports:
       - "8000:8000"
     volumes:
@@ -108,8 +83,6 @@ services:
       - main-db
     networks:
       - nginx_to_services
-    expose:
-      - "80"
   main-db:
     image: postgres:15-alpine
     container_name: "postgres_db"
