@@ -62,7 +62,8 @@ services:
 #    build:
 #      dockerfile: ../deployment-service-BE/Dockerfile
     working_dir: /deployment-service-BE/app
-    command: bash -c "../deployment-service-BE && uvicorn app.__main__:app --host 0.0.0.0 --port 8088 --reload"
+    command: uvicorn app.__main__:app --host 0.0.0.0 --port 8088 --reload
+    #TODO: MAKE CMD param in Dockerfile and delete command from here
     ports:
       - "8088:8088"
     environment:
@@ -77,7 +78,7 @@ services:
 #    build:
 #      dockerfile: ../main-BE/Dockerfile
     working_dir: /main-BE/app
-    command: bash -c 'cd ../main-be && alembic upgrade head && while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.__main__:app --host 0.0.0.0 --reload'
+    command: bash -c 'alembic upgrade head && while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.__main__:app --host 0.0.0.0 --reload'
     ports:
       - "8000:8000"
     volumes:
