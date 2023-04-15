@@ -3,7 +3,7 @@ version: "3.9"
 services:
   auth-app:
     container_name: "authorization-BE"
-    build: ../authorization-BE
+    build: /authorization-BE
 #      dockerfile: ../authorization-BE/Dockerfile
 #    command: ./wait_psql.sh db ./auth-app
     command: ./auth-app
@@ -58,7 +58,7 @@ services:
       - auth-db
   deployment-app:
     container_name: "deployment-service"
-    build: ../deployment-service-BE
+    build: /deployment-service-BE
 #    build:
 #      dockerfile: ../deployment-service-BE/Dockerfile
     working_dir: /deployment-service-BE/app
@@ -73,7 +73,7 @@ services:
     restart: always
   main-app:
     container_name: "main-api"
-    build: ../main-BE
+    build: /main-BE
 #    build:
 #      dockerfile: ../main-BE/Dockerfile
     working_dir: /main-BE/app
@@ -110,7 +110,7 @@ services:
     restart: always
   frontend:
     container_name: "FE"
-    build: ../veiia-FE
+    build: /veiia-FE
     restart: always
     ports:
       - "3000:3000"

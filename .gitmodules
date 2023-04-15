@@ -1,0 +1,12 @@
+[submodule "authorization-BE"]
+	path = authorization-BE
+	url = git@github.com:veiia/authorization-BE.git
+[submodule "main-BE"]
+	path = main-BE
+	url = git@github.com:veiia/main-BE.git
+[submodule "deployment-service-BE"]
+	path = deployment-service-BE
+	url = git@github.com:veiia/deployment-service-BE.git
+[submodule "veiia-FE"]
+	path = veiia-FE
+	url = git@github.com:veiia/veiia-FE.git
